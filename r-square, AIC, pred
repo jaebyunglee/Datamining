@@ -1,0 +1,34 @@
+rm(list=ls())
+xy.df = read.csv("C:\\Users\\kis91\\Desktop\\old.sam.for.reg.fit.csv")
+nxy.df = read.csv("C:\\Users\\kis91\\Desktop\\old.sam.for.reg.pred.csv")
+
+rst.mat = matrix(NA,4,3)
+colnames(rst.mat) = c("sq","abs","hub")
+rownames(rst.mat) = c("R^2","Ra^2","AIC","pred")
+colnames(xy.df)
+str(xy.df)
+lm.fit = lm(sensitivity~.,data=xy.df)
+lm.sum = summary(lm.fit)
+rst.mat[,1] = c(lm.sum$r.squared,lm.sum$adj.r.squared,
+  AIC(lm.fit),mean((nxy.df$sensitivity-predict(lm.fit,newdata=nxy.df))^2))
+
+##########################################################################
+library(quantreg)
+rq.fit = rq(sensitivity~.,data=xy.df)
+names(rq.fit)
+summary(rq.fit)
+rst.mat[3,2]=AIC(rq.fit)
+rst.mat[4,2]=mean((nxy.df$sensitivity-predict(rq.fit,newdata=nxy.df))^2)
+rst.mat
+
+##########################################################################
+n = 10000; p = 10
+b.vec = 1/(1:p)
+x.mat = matrix(rnorm(n*p),n,p)
+y.vec = x.mat%*%b.vec + rnorm(n)
+
+xy.df2 = data.frame(y.vec,x.mat)
+lm.fit2 = lm(y.vec~.,data = xy.df2)
+summary(lm.fit2)
+coef(lm.fit2)
+
