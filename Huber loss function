@@ -1,0 +1,28 @@
+rm(list=ls())
+
+
+##Huber loss function
+hub.loss.fun = function(y.vec,x.vec,b.vec,del){
+  x.mat = cbind(1,x.vec)
+  r.vec = y.vec-drop(x.mat%*%b.vec)
+  i.vec = r.vec<=del
+  return(sum((r.vec^2)/(2*length(y.vec))*i.vec +(2*del*abs(r.vec)-del^2)/(2*length(y.vec))*(1-i.vec)))
+}
+################plot when b.vec[0]==0
+n = 100 ; grid.p = 10000
+
+y.vec = rnorm(n)
+x.vec = rnorm(n)
+b1.vec = seq(-3,3,length.out = grid.p)
+
+f.vec = rep(NA,grid.p)
+
+for(i in 1:grid.p){
+  b.vec = c(0,b1.vec[i])
+  f.vec[i] = hub.loss.fun(y.vec,x.vec,b.vec,1.3)
+}
+
+b1.vec[which.min(f.vec)]
+plot(b1.vec,f.vec)
+
+rm(list=ls())
