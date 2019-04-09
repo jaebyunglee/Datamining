@@ -1,0 +1,23 @@
+rm(list=ls())
+
+y.vec = c(3,2,2)
+x.vec = c(-1,2,2)
+b.vec = c(1,1)
+
+sq.loss.fun = function(y.vec,x.vec,b.vec){
+  x.mat = cbind(1,x.vec)
+  sum((y.vec-x.mat%*%b.vec)^2)
+}
+sq.loss.fun(y.vec,x.vec,b.vec)
+
+b0 = seq(-10,10,length.out = 100)
+b1 = seq(-10,10,length.out = 100)
+l.mat = matrix(NA,100,100)
+
+for(i in 1:100){
+  for(j in 1:100){
+    b.vec = c(b0[i],b1[j])
+    l.mat[i,j] = sq.loss.fun(y.vec,x.vec,b.vec)
+  }
+}
+contour(b0,b1,l.mat)
