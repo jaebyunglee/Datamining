@@ -1,0 +1,52 @@
+#forward step indefendence cross validation test error
+
+rm(list=ls())
+
+xy.df = read.csv("C:\\Users\\kis91\\Desktop\\old.sam.for.reg.fit.csv")
+nxy.df = read.csv("C:\\Users\\kis91\\Desktop\\old.sam.for.reg.pred.csv")
+xy.df = rbind(xy.df,nxy.df)
+
+n = dim(xy.df)[1]; p = dim(xy.df)[2]
+a.set = NULL ; c.set = 2:p
+e.vec = NULL ; e.opt = NULL
+cv.id = split(1:n,1:5)
+
+
+for(id in c.set){
+  d.set = c(1,id)
+  cv.err = 0
+  for(k in 1:5){
+    cv.set = cv.id[[k]]
+    lm.fit = lm(sensitivity~.,data=xy.df[-cv.set,d.set])
+    ny = predict(lm.fit,newdata=xy.df[cv.set,d.set])
+    cv.err = cv.err+sqrt(sum((xy.df[cv.set,1]-ny)^2))
+  }
+  e.vec = c(e.vec,cv.err)
+}
+
+opt = which.min(e.vec); e.opt = e.vec[opt]
+
+##############################################################################
+
+for(iid in 2:p){
+  a.set = c(a.set,c.set[opt]) ;c.set = c.set[-opt]
+  e.vec = NULL 
+  
+  for(id in c.set){
+    d.set = c(1,a.set,id); cv.err = 0
+    for(k in 1:5){
+      cv.set = cv.id[[k]]
+      lm.fit = lm(sensitivity~.,data=xy.df[-cv.set,d.set])
+      ny = predict(lm.fit,newdata=xy.df[cv.set,d.set])
+      cv.err = cv.err+sqrt(sum((xy.df[cv.set,1]-ny)^2))
+    }
+    e.vec = c(e.vec,cv.err)
+  }
+  
+  opt = which.min(e.vec)
+  if(e.opt<min(e.vec)) break
+  e.opt = min(e.vec)
+  print(e.opt)
+}
+
+a.set
