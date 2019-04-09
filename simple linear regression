@@ -1,0 +1,19 @@
+rm(list=ls())
+del.n.mat = matrix(NA,100,2)
+for(i in 1:100){
+  n = i*50
+  e.vec = rnorm(n)
+  x.vec = seq(0,1,length.out = n)
+  y.vec = -3+2*x.vec + e.vec
+  
+  xy.df = as.data.frame(cbind(y.vec,x.vec))
+  fit = lm(y.vec~x.vec, data = xy.df)
+  b.vec = coef(fit)
+  del = sqrt(sum(b.vec - c(-3,2))^2)
+  del.n.mat[i,1] = n
+  del.n.mat[i,2] = del
+}
+
+
+
+plot(del.n.mat)
