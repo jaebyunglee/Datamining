@@ -1,0 +1,93 @@
+rm(list=ls())
+set.seed(1234)
+xy.df = read.csv("C:\\Users\\kis91\\Desktop\\old.sam.for.reg.fit.csv")
+nxy.df = read.csv("C:\\Users\\kis91\\Desktop\\old.sam.for.reg.pred.csv")
+
+#variable selection function for forward step
+forward.fun = function(xy.df,mod = c("ajd","aic","bic","ind","cross"),ratio=0.3,nf = 10){
+  p = dim(xy.df)[2] ; colnames(xy.df)[1] = "y"
+  n = dim(xy.df[1])
+  if(mod=="ind"){ ind.id = sample(1:n)[1:(n*ratio)]
+  }
+  if(mod=="cross"){ crs.id = split(sample(1:n),1:nf)
+  }
+  a.set = NULL; c.set = 2:p ; e.vec = NULL
+  for(id in c.set){
+    d.set = c(1,id) 
+    if(mod=="adj"){
+      lm.fit = lm(y~.,data=xy.df[,d.set])
+      e.vec = c(e.vec,-summary(lm.fit)$adj.r.squared)
+    }
+    if(mod=="aic"){
+      lm.fit = lm(y~.,data=xy.df[,d.set])
+      e.vec = c(e.vec,AIC(lm.fit))
+    }
+    if(mod=="bic"){
+      lm.fit = lm(y~.,data=xy.df[,d.set])
+      e.vec = c(e.vec,BIC(lm.fit))
+    }
+    if(mod=="ind"){
+      lm.fit = lm(y~.,data=xy.df[-ind.id,d.set])
+      ny = predict(lm.fit,newdata=xy.df[ind.id,d.set])
+      e.vec = c(e.vec,mean(abs(ny-xy.df[ind.id,1])))
+    }
+    if(mod=="cross"){
+      cv.err = 0
+      for(k in 1:nf){
+        lm.fit = lm(y~.,data=xy.df[-crs.id[[k]],d.set])
+        ny = predict(lm.fit,newdata=xy.df[crs.id[[k]],d.set])
+        cv.err = cv.err + mean(abs(ny-xy.df[crs.id[[k]],1]))
+        }
+
+      e.vec = c(e.vec,cv.err)
+    }
+  }
+  opt = which.min(e.vec); e.opt = min(e.vec)
+  for(iid in 3:p){
+    a.set = c(a.set,c.set[opt]) ;c.set = c.set[-opt] ;e.vec = NULL
+    for(id in c.set){
+      d.set = c(1,a.set,id)
+      
+      if(mod=="adj"){
+        lm.fit = lm(y~.,data=xy.df[,d.set])
+        e.vec = c(e.vec,-summary(lm.fit)$adj.r.squared)
+      }
+      if(mod=="aic"){
+        lm.fit = lm(y~.,data=xy.df[,d.set])
+        e.vec = c(e.vec,AIC(lm.fit))
+      }
+      if(mod=="bic"){
+        lm.fit = lm(y~.,data=xy.df[,d.set])
+        e.vec = c(e.vec,BIC(lm.fit))
+      }
+      if(mod=="ind"){
+        lm.fit = lm(y~.,data=xy.df[-ind.id,d.set])
+        ny = predict(lm.fit,newdata=xy.df[ind.id,d.set])
+        e.vec = c(e.vec,mean(abs(ny-xy.df[ind.id,1])))
+      }
+      if(mod=="cross"){
+        cv.err = 0
+        for(k in 1:nf){
+          lm.fit = lm(y~.,data=xy.df[-crs.id[[k]],d.set])
+          ny = predict(lm.fit,newdata=xy.df[crs.id[[k]],d.set])
+          cv.err = cv.err + mean(abs(ny-xy.df[crs.id[[k]],1]))
+        }
+        
+        e.vec = c(e.vec,cv.err)
+      }
+    }
+    opt = which.min(e.vec)
+    if(e.opt<min(e.vec)) break
+    e.opt = min(e.vec)
+  }
+  
+  return(a.set)
+}
+
+forward.fun(xy.df,mod="adj")
+forward.fun(xy.df,mod="aic")
+forward.fun(xy.df,mod="bic")
+forward.fun(xy.df,mod="ind")
+forward.fun(xy.df,mod="cross")
+
+
