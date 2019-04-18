@@ -1,0 +1,35 @@
+rm(list=ls())
+#function
+source("C:\\Users\\kis91\\Desktop\\variable selection funtion_(2019.04.10).R")
+
+set.seed(1234)
+xy.df = read.csv("C:\\Users\\kis91\\Desktop\\old.sam.for.reg.fit.csv")
+nxy.df = read.csv("C:\\Users\\kis91\\Desktop\\old.sam.for.reg.pred.csv")
+xy.df = rbind(xy.df,nxy.df)
+
+
+
+rnd.num = 100
+rst.tab = NULL
+
+for(i in 1:rnd.num){
+  print(i)
+  ts.id = sample(1:dim(xy.df)[1])[1:300]
+  rst.vec = NULL
+  fit = lm(sensitivity~., data=xy.df[-ts.id,])
+  rst.vec = c(rst.vec,mean(abs(xy.df[ts.id,1] - predict(fit,xy.df[ts.id,]))))
+  for(mod in c("adj","ind","cross")){
+    set = forward.fun(xy.df[-ts.id,],mod=mod)
+    fit = lm(sensitivity~.,data=xy.df[-ts.id,c(1,set)])
+    rst.vec = c(rst.vec,mean(abs(xy.df[ts.id,1] - predict(fit,xy.df[ts.id,set]))))
+  }
+  rst.tab = rbind(rst.tab,rst.vec)
+}
+
+
+
+par(mfrow=c(1,2))
+for(i in 5:6){plot(xy.df[,i],xy.df[,1])
+}
+xy.df[,5]
+plot((xy.df[,5]),xy.df[,1])
