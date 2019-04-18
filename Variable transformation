@@ -1,0 +1,40 @@
+rm(list=ls())
+xy.df = read.csv("C:\\Users\\kis91\\Desktop\\old.sam.for.reg.fit.csv")
+nxy.df = read.csv("C:\\Users\\kis91\\Desktop\\old.sam.for.reg.pred.csv")
+xy.df = rbind(xy.df,nxy.df)
+
+xy.df.list = list()
+xy.df.list[[1]] = xy.df
+xy.df.list[[1]][,5] = sqrt(abs(xy.df[,5]))
+xy.df.list[[1]][,6] = (xy.df[,6])^2
+
+xy.df.list[[2]] = xy.df
+xy.df.list[[2]][,5] = (xy.df[,5])^2
+xy.df.list[[2]][,6] = log((xy.df[,6]-min(xy.df[,6]))/(max(xy.df[,6])-min(xy.df[,6]))+0.001)
+
+xy.df.list[[3]] = xy.df
+xy.df.list[[3]][,c(5,6,8)] = apply(xy.df[,c(5,6,8)],2,abs)
+
+xy.df.list[[4]] = xy.df
+xy.df.list[[4]][,5] = log(abs(xy.df[,5]))
+xy.df.list[[4]][,6] = (xy.df[,6])^2 
+
+xy.df.list[[5]] = xy.df
+
+
+rnd.num = 100
+final.mat = matrix(NA,rnd.num,5)
+
+for(k in 1:5){
+  rst.vec = NULL
+  for(i in 1:rnd.num){
+    print(i)
+    ts.id = sample(1:dim(xy.df)[1])[1:300]
+    tr.df = xy.df.list[[k]][-ts.id,]
+    ts.df = xy.df.list[[k]][ts.id,]
+    fit = lm(sensitivity~.,data=tr.df)
+    rst.vec = c(rst.vec,mean(abs(ts.df[,1] - predict(fit,ts.df[,-1]))))
+  }
+  final.mat[,k] = rst.vec
+}
+boxplot(final.mat)
