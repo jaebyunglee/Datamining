@@ -1,0 +1,29 @@
+rm(list=ls())
+
+###logistic
+xy.df = read.csv("C:\\Users\\kis91\\Desktop\\new.sam.for.log.fit.csv")
+xy.df = xy.df[,1:11]
+xxy.df = xy.df
+xxy.df[,1] = xy.df[,1]=="case"
+head(xxy.df)
+
+fit = lm(disease~.,data=xxy.df)
+y = xxy.df[,1]+0
+ny = (predict(fit,xxy.df)>0.5)+0
+
+sen = sum(ny[y==1]==1)/sum(y==1)
+spc = sum(ny[y==0]==0)/sum(y==0)
+acc = sum(ny==y)/length(y)
+rst.mat = rbind(sen,spc,acc)
+
+#glm
+xy.df[,1]=relevel(xy.df[,1],"non-case")
+fit.glm = glm(disease~.,data=xy.df,family="binomial")
+summary(fit.glm)
+ny = (predict(fit.glm,xy.df)>0)+0
+tab = table(xy.df[,1],ny)
+sen = tab[2,2]/sum(tab[2,])
+spc = tab[1,1]/sum(tab[1,])
+acc = sum(diag(tab))/sum(tab)
+rst.mat = cbind(rst.mat,c(sen,spc,acc))
+rst.mat
