@@ -1,0 +1,43 @@
+rm(list=ls())
+set.seed(1234)
+n = 3000+20; p = 5+20 
+x.mat = matrix(rnorm(n*p),ncol=p); nx.mat = matrix(rnorm(n*p),ncol=p)
+b.vec = 1/(1:p)
+y.vec = drop(x.mat%*%b.vec)+rnorm(n); ny.vec = drop(nx.mat%*%b.vec)+rnorm(n)
+xy.df = as.data.frame(cbind(y.vec,x.mat)); nxy.df = as.data.frame(cbind(ny.vec,nx.mat)) 
+colnames(xy.df)[1] = colnames(nxy.df)[1] = "sensitivity"
+
+# forward selection based on independent test error
+p = dim(xy.df)[2]
+# step 1 
+a.set = NULL; c.set = 2:p; e.vec = NULL 
+for(id in c.set){
+  d.set = c(1,id); lm.fit = lm(sensitivity~.,data=xy.df[,d.set])
+  ny = predict(lm.fit,newdata=nxy.df[,d.set])
+  e.vec = c(e.vec,mean(abs(nxy.df[,1]-ny)))
+}
+opt = which.min(e.vec); e.opt = e.vec[opt]
+
+for(iid in 2:(p-1)){
+  a.set = c(a.set,c.set[opt]); c.set = c.set[-opt]; e.vec = NULL 
+  for(id in c.set){
+    d.set = c(1,a.set,id); lm.fit = lm(sensitivity~.,data=xy.df[,d.set])
+    ny = predict(lm.fit,newdata=nxy.df[,d.set])
+    e.vec = c(e.vec,mean(abs(nxy.df[,1]-ny)))
+  }
+  opt = which.min(e.vec); 
+  print(e.vec[opt]); print(c.set[opt])
+   ne.opt = e.vec[opt]
+   if(e.opt<ne.opt) break 
+  e.opt = ne.opt
+}
+a.set-1
+
+
+
+
+
+
+
+
+
